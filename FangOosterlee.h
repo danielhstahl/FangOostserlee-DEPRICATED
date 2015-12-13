@@ -4,7 +4,7 @@
 #include <cmath>
 #include "Complex.h"
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <iostream> //debugging
 #include <functional>
 //typedef Complex (*cf)(Complex, std::map<std::string, double>); //defines cf as a pointer to a function which takes complex and outputs complex as arguments...as of now all arguments must be doubles...
@@ -23,7 +23,7 @@ class FangOosterlee {
 		double getEL();
 		double getVariance();
 		template< typename FN, typename... ARGS>
-		std::map<std::string, std::vector<double> > computeDistribution(double xmin, double xmax, FN&& fn, ARGS&&... args) {
+		std::unordered_map<std::string, std::vector<double> > computeDistribution(double xmin, double xmax, FN&& fn, ARGS&&... args) {
 			double xRange=xmax-xmin;
 			double du=M_PI/xRange;
 			double dx=xRange/(double)(h-1);
@@ -59,7 +59,7 @@ class FangOosterlee {
 				cdf=cdf+dx*y[i];
 				VaR[i]=cdf;
 			}
-			std::map<std::string, std::vector<double> > distribution;
+			std::unordered_map<std::string, std::vector<double> > distribution;
 			distribution["x"]=x;
 			distribution["y"]=y;
 			distribution["VaR"]=VaR;
