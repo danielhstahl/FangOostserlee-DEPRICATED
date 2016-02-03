@@ -5,7 +5,8 @@
 #include "Complex.h"
 #include <vector>
 #include <unordered_map>
-#include <iostream> //debugging
+#include <iostream>
+#include <string>
 #include <functional>
 //typedef Complex (*cf)(Complex, std::map<std::string, double>); //defines cf as a pointer to a function which takes complex and outputs complex as arguments...as of now all arguments must be doubles...
 
@@ -64,6 +65,55 @@ class FangOosterlee {
 			distribution["y"]=y;
 			distribution["VaR"]=VaR;
 			return distribution;
+		}
+		template< typename FN, typename... ARGS>
+		void computeDistributionJSON(double xmin, double xmax, FN&& fn, ARGS&&... args) {
+			computeDistributionJSON(false, xmin, xmax, fn, args...);
+		}
+		template< typename FN, typename... ARGS>
+		void computeDistributionJSON(bool showProgress, double xmin, double xmax, FN&& fn, ARGS&&... args) {
+			double xRange=xmax-xmin;
+			double du=M_PI/xRange;
+			double dx=xRange/(double)(h-1);
+			double cp=2.0/xRange;
+			std::vector<double> f=std::vector<double> (k);
+			#pragma omp parallel//multithread using openmp
+			{
+				#pragma omp for //multithread using openmp
+				for(int j=0; j<k; j++){
+					Complex u=Complex(0, du*j);
+					f[j]=fn(u, args...).multiply(u.multiply(-xmin).exp()).getReal()*cp;
+				}
+			}
+			f[0]=.5*f[0];
+			exloss=0;
+			vloss=0;
+			double cdf=0;
+			std::cout<<"{\"y\":[";
+			double y=0;
+			int numProgress=20;//relatively smooth if 20 updates
+			int interval=h/numProgress;
+			for(int i=0;  i<(h-1); i++){
+				y=0;
+				for(int j=0; j<k; j++){
+					y=y+f[j]*std::cos(du*j*dx*i);
+				}
+				if(showProgress){
+					if(i%interval==0){
+						std::cout<<"{\"progress\":"<<(double)i/(double)h<<"}"<<std::endl;
+					}
+				}
+				std::cout<<y<<", ";
+				vloss=vloss+y*i*dx*dx*i;
+				exloss=exloss+y*(xmin+i*dx)*dx;
+			}
+			y=0;
+			for(int j=0; j<k; j++){
+				y=y+f[h-1]*std::cos(du*j*dx*(h-1));
+			}
+			std::cout<<y<<"], \"xmin\":"<<xmin<<", \"dx\":"<<dx<<"}\\n"<<std::endl;
+			vloss=vloss+y*(h-1)*dx*dx*(h-1);
+			exloss=exloss+y*(xmin+(h-1)*dx)*dx;
 		}
 };
 #endif
