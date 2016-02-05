@@ -77,12 +77,21 @@ class FangOosterlee {
 			double dx=xRange/(double)(h-1);
 			double cp=2.0/xRange;
 			std::vector<double> f=std::vector<double> (k);
+			int trackProgress=0;
+			int numProgress=20;//relatively smooth if 20 updates
+			int interval=k/numProgress;
 			#pragma omp parallel//multithread using openmp
 			{
 				#pragma omp for //multithread using openmp
 				for(int j=0; j<k; j++){
 					Complex u=Complex(0, du*j);
 					f[j]=fn(u, args...).multiply(u.multiply(-xmin).exp()).getReal()*cp;
+					if(showProgress){
+						if(trackProgress%interval==0){
+							std::cerr<<"{\"progress\":"<<(double)trackProgress/(double)k<<"}\\n"<<std::endl;
+						}
+					}
+					trackProgress++;
 				}
 			}
 			f[0]=.5*f[0];
@@ -91,18 +100,13 @@ class FangOosterlee {
 			double cdf=0;
 			std::cout<<"{\"y\":[";
 			double y=0;
-			int numProgress=20;//relatively smooth if 20 updates
-			int interval=h/numProgress;
+
 			for(int i=0;  i<(h-1); i++){
 				y=0;
 				for(int j=0; j<k; j++){
 					y=y+f[j]*std::cos(du*j*dx*i);
 				}
-				if(showProgress){
-					if(i%interval==0){
-						std::cout<<"{\"progress\":"<<(double)i/(double)h<<"}"<<std::endl;
-					}
-				}
+
 				std::cout<<y<<", ";
 				vloss=vloss+y*i*dx*dx*i;
 				exloss=exloss+y*(xmin+i*dx)*dx;
