@@ -70,6 +70,7 @@ class FangOosterlee {
 		void computeDistributionJSON(double xmin, double xmax, FN&& fn, ARGS&&... args) {
 			computeDistributionJSON(false, xmin, xmax, fn, args...);
 		}
+		
 		template< typename FN, typename... ARGS>
 		void computeDistributionJSON(bool showProgress, double xmin, double xmax, FN&& fn, ARGS&&... args) {
 			double xRange=xmax-xmin;

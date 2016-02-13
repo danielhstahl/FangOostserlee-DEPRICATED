@@ -1,3 +1,6 @@
 unix:
 g++ -O3 -std=c++11 -o FangOosterlee.o -c FangOosterlee.cpp -I../Complex -L../Complex -lComplex -fopenmp
 ar rcs libFangOosterlee.a FangOosterlee.o
+
+g++ -O3 -std=c++14 -o FangOosterlee.o -c FangOosterlee.cpp -I../Complex -L../Complex -lComplex -fopenmp
+ar rcs libFangOosterlee.a FangOosterlee.o
